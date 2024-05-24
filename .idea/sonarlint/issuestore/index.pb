@@ -36,3 +36,7 @@ M
 src/old_versions/batch_ocr.py,e\8\e804a9489cfd8c6fd5642aa3d4497c34e7711e26
 M
 src/old_versions/script001.py,e\0\e0ee9a744e0102b585e0b96ba0d279ed59e0ab8a
+;
+script02.py,9\8\98051717fae989393148393c9b92fed6e24299de
+B
+src/new_version.py,2\4\24588ad6e0601ecef095faa39dc349f7f79e9dbf

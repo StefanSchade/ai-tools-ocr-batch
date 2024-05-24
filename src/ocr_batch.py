@@ -2,7 +2,7 @@ import sys
 import os
 import re
 import logging
-from PIL import Image, ImageFilter, ImageOps
+from PIL import Image, ImageFilter, ImageOps, ImageEnhance
 import pytesseract
 
 # Setup logging
@@ -22,55 +22,61 @@ def find_tesseract_path():
 
 def preprocess_image(image_path, save_preprocessed, output_dir, threshold):
     """Pre-process the image to enhance OCR accuracy."""
-    try:
-        img = Image.open(image_path)
-        img = img.convert('L')  # Convert to grayscale
-        img = img.resize((img.width * 2, img.height * 2), Image.BICUBIC)  # Scale image
-        img = img.filter(ImageFilter.MedianFilter())  # Apply median filter to remove noise
-        if threshold > 0:
-            img = img.point(lambda p: p > threshold and 255)
+    img = Image.open(image_path)
+    img = img.convert('L')
+    img = img.resize((img.width * 2, img.height * 2), Image.BICUBIC)
+    img = img.filter(ImageFilter.MedianFilter())
+    if threshold > 0:
+        img = img.point(lambda p: p > threshold and 255)
+    return img
 
-        if save_preprocessed:
-            preprocessed_path = os.path.join(output_dir, 'preprocessed_images')
-            os.makedirs(preprocessed_path, exist_ok=True)
-            preprocessed_image_path = os.path.join(preprocessed_path, os.path.basename(image_path))
-            img.save(preprocessed_image_path)
-            logging.info(f"Saved preprocessed image to {preprocessed_image_path}")
+def check_orientations(image, language, tessdata_dir_config, tesseract_cmd):
+    """Rotate image in all four orientations and perform OCR, returning the best result based on confidence."""
+    orientations = [0, 90, 180, 270]
+    best_text = ''
+    highest_confidence = -1
 
-        return img
-    except Exception as e:
-        logging.exception("Failed to preprocess image.")
-        raise RuntimeError("Failed to preprocess image") from e
+    for angle in orientations:
+        rotated_image = image.rotate(angle, expand=True)
+        text, confidence = tesseract_ocr(rotated_image, language, tessdata_dir_config, tesseract_cmd)
+        if confidence > highest_confidence:
+            highest_confidence = confidence
+            best_text = text
+    return best_text
 
 def tesseract_ocr(image, language, tessdata_dir_config, tesseract_cmd):
-    """Run OCR on the processed image with specified language."""
-    if tesseract_cmd is None:
-        raise RuntimeError("Tesseract executable not found.")
+    """Run OCR on the processed image with specified language and return text with confidence score."""
     pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
     config = f'--oem 3 --psm 3 -l {language} {tessdata_dir_config}'
-    return pytesseract.image_to_string(image, config=config)
+    data = pytesseract.image_to_data(image, config=config, output_type=pytesseract.Output.DICT)
+    text = ' '.join([data['text'][i] for i in range(len(data['text'])) if data['conf'][i] > 60])
+    if len(data['conf']) > 0:
+        average_confidence = sum(data['conf']) / len(data['conf'])
+    else:
+        average_confidence = 0
+    return text, average_confidence
 
-def process_images(input_dir, language, save_preprocessed, threshold, tessdata_dir):
-    """Process all images in the directory and output OCR results to a file."""
+
+def process_images(input_dir, language, save_preprocessed, threshold, tessdata_dir, check_orientation):
+    """Process all images in the directory, potentially checking orientation, and output OCR results to a file."""
     output_file = os.path.join(input_dir, "result.txt")
     tessdata_dir_config = f'--tessdata-dir "{tessdata_dir}"'
     tesseract_cmd = find_tesseract_path()
-    if not tesseract_cmd:
-        logging.error("Tesseract path not found. Please ensure Tesseract is installed and in your PATH.")
-        return
 
     with open(output_file, 'w', encoding='utf-8') as file_out:
-        for filename in sorted(os.listdir(input_dir)):
-            if filename.lower().endswith(('.jpeg', '.jpg', '.png')):
-                full_path = os.path.join(input_dir, filename)
-                img = preprocess_image(full_path, save_preprocessed, input_dir, threshold)
-                text = tesseract_ocr(img, language, tessdata_dir_config, tesseract_cmd)
-                file_out.write(text + '\n')
+        for index, filename in enumerate(sorted([f for f in os.listdir(input_dir) if f.endswith(('.jpeg', '.jpg', '.png'))])):
+            full_path = os.path.join(input_dir, filename)
+            img = preprocess_image(full_path, save_preprocessed, input_dir, threshold)
+            if check_orientation:
+                text = check_orientations(img, language, tessdata_dir_config, tesseract_cmd)
+            else:
+                text, _ = tesseract_ocr(img, language, tessdata_dir_config, tesseract_cmd)
+            file_out.write(f"// {{\"new_page\": true, \"page_number\": {index + 1}, \"page_file\": \"{filename}\"}}\n")
+            file_out.write(text + '\n')
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        logging.error("Insufficient arguments provided.")
-        print("Usage: python script.py <input_directory> [language_code] [--save-preprocessed] [threshold] [--tessdata-path <path_to_tessdata>]")
+        print("Usage: python script.py <input_directory> [language_code] [--save-preprocessed] [threshold] [--tessdata-path <path_to_tessdata>] [--check-orientation]")
         sys.exit(1)
 
     input_dir = sys.argv[1]
@@ -78,19 +84,18 @@ if __name__ == '__main__':
     save_preprocessed = False
     threshold = 0
     tessdata_dir = ""
+    check_orientation = False
 
-    i = 2
-    while i < len(sys.argv):
-        arg = sys.argv[i]
+    for arg in sys.argv[2:]:
         if arg == '--save-preprocessed':
             save_preprocessed = True
         elif arg.isdigit():
             threshold = int(arg)
-        elif arg == '--tessdata-path' and i + 1 < len(sys.argv):
-            tessdata_dir = sys.argv[i + 1]
-            i += 1
+        elif arg.startswith('--tessdata-path'):
+            tessdata_dir = arg.split('=')[1]
         elif len(arg) == 3 and arg.isalpha():
             language = arg
-        i += 1
+        elif arg == '--check-orientation':
+            check_orientation = True
 
-    process_images(input_dir, language, save_preprocessed, threshold, tessdata_dir)
+    process_images(input_dir, language, save_preprocessed, threshold, tessdata_dir, check_orientation)

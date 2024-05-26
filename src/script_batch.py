@@ -55,11 +55,11 @@ def check_orientations(image, language, tessdata_dir_config, tesseract_cmd):
             adjustments = [SMALL_ROTATION_STEP, -SMALL_ROTATION_STEP]
             for adjustment in adjustments:
                 adjusted_image = image.rotate(final_angle + adjustment, expand=True)
-                _, adjusted_confidence = tesseract_ocr(adjusted_image, language, tessdata_dir_config, tesseract_cmd)
+                adjusted_text, adjusted_confidence = tesseract_ocr(adjusted_image, language, tessdata_dir_config, tesseract_cmd)
                 if adjusted_confidence > highest_confidence:
                     highest_confidence = adjusted_confidence
                     final_angle += adjustment
-                    best_text, _ = tesseract_ocr(adjusted_image, language, tessdata_dir_config, tesseract_cmd)
+                    best_text = adjusted_text
                     break
 
     return best_text, final_angle

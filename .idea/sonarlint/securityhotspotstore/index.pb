@@ -24,3 +24,7 @@ M
 src/old_versions/script001.py,e\0\e0ee9a744e0102b585e0b96ba0d279ed59e0ab8a
 B
 src/new_version.py,2\4\24588ad6e0601ecef095faa39dc349f7f79e9dbf
+C
+src/script_batch.py,7\e\7e5933df9ed0a2a7cf3f2db93d4e880e8446c4ef
+G
+src/sciript_outdated.py,6\4\64ccdb31ae286eaffb02dd4ce5a24678e855bd72

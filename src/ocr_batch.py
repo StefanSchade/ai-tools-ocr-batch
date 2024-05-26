@@ -4,6 +4,7 @@ import re
 import logging
 from PIL import Image, ImageFilter, ImageOps, ImageEnhance
 import pytesseract
+import json
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -54,48 +55,40 @@ def tesseract_ocr(image, language, tessdata_dir_config, tesseract_cmd):
         average_confidence = sum(data['conf']) / len(data['conf'])
     else:
         average_confidence = 0
+    logging.debug(f"Processed text with average confidence: {average_confidence}")
     return text, average_confidence
 
-
-def process_images(input_dir, language, save_preprocessed, threshold, tessdata_dir, check_orientation):
-    """Process all images in the directory, potentially checking orientation, and output OCR results to a file."""
-    output_file = os.path.join(input_dir, "result.txt")
-    tessdata_dir_config = f'--tessdata-dir "{tessdata_dir}"'
-    tesseract_cmd = find_tesseract_path()
+def process_images(input_dir, language, save_preprocessed, threshold, tesseract_cmd, tessdata_dir, check_orientation):
+    """Process all images in the directory and output OCR results to a file with confidence."""
+    pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+    tessdata_dir_config = r'--tessdata-dir "' + tessdata_dir + '"'
+    output_file = os.path.join(input_dir, 'result.txt')
 
     with open(output_file, 'w', encoding='utf-8') as file_out:
-        for index, filename in enumerate(sorted([f for f in os.listdir(input_dir) if f.endswith(('.jpeg', '.jpg', '.png'))])):
+        for index, filename in enumerate(sorted([f for f in os.listdir(input_dir) if f.endswith('.jpeg') or f.endswith('.jpg')]), start=1):
             full_path = os.path.join(input_dir, filename)
-            img = preprocess_image(full_path, save_preprocessed, input_dir, threshold)
-            if check_orientation:
-                text = check_orientations(img, language, tessdata_dir_config, tesseract_cmd)
-            else:
-                text, _ = tesseract_ocr(img, language, tessdata_dir_config, tesseract_cmd)
-            file_out.write(f"// {{\"new_page\": true, \"page_number\": {index + 1}, \"page_file\": \"{filename}\"}}\n")
-            file_out.write(text + '\n')
+            try:
+                img = preprocess_image(full_path, save_preprocessed, input_dir, threshold)
+                text, confidence = tesseract_ocr(img, language, tessdata_dir_config, tesseract_cmd)
+                json_output = {
+                    "new_page": True,
+                    "page_number": index,
+                    "page_file": filename,
+                    "confidence": confidence
+                }
+                file_out.write(f"'{json.dumps(json_output)}'\n{text}\n")
+                logging.info(f"Processed {filename} with confidence: {confidence}")
+            except Exception as e:
+                logging.error(f"Failed to process {filename}: {e}")
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <input_directory> [language_code] [--save-preprocessed] [threshold] [--tessdata-path <path_to_tessdata>] [--check-orientation]")
-        sys.exit(1)
-
     input_dir = sys.argv[1]
-    language = 'eng'  # Default language
-    save_preprocessed = False
-    threshold = 0
-    tessdata_dir = ""
-    check_orientation = False
+    language = 'deu'  # Default language
+    save_preprocessed = '--save-preprocessed' in sys.argv
+    threshold = int(sys.argv[sys.argv.index('--threshold') + 1]) if '--threshold' in sys.argv else 0
+    tesseract_cmd = find_tesseract_path()
+    tessdata_dir = os.path.join(os.path.dirname(tesseract_cmd), 'tessdata') if tesseract_cmd else ""
+    check_orientation = '--check_orientation' in sys.argv
 
-    for arg in sys.argv[2:]:
-        if arg == '--save-preprocessed':
-            save_preprocessed = True
-        elif arg.isdigit():
-            threshold = int(arg)
-        elif arg.startswith('--tessdata-path'):
-            tessdata_dir = arg.split('=')[1]
-        elif len(arg) == 3 and arg.isalpha():
-            language = arg
-        elif arg == '--check-orientation':
-            check_orientation = True
+    process_images(input_dir, language, save_preprocessed, threshold, tesseract_cmd, tessdata_dir, check_orientation)
 
-    process_images(input_dir, language, save_preprocessed, threshold, tessdata_dir, check_orientation)

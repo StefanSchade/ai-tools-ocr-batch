@@ -28,3 +28,9 @@ C
 src/script_batch.py,7\e\7e5933df9ed0a2a7cf3f2db93d4e880e8446c4ef
 G
 src/sciript_outdated.py,6\4\64ccdb31ae286eaffb02dd4ce5a24678e855bd72
+9
+	README.md,8\e\8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
+T
+$src/old_versions/sciript_outdated.py,b\c\bc326552a29a5b0db47df6d39f421fb85b4b3ebe
+O
+src/old_versions/new_version.py,6\8\683c579c469aa0278a3fb7df20b15962d2fc48c7

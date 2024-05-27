@@ -54,6 +54,7 @@ def check_orientations(image, language, tessdata_dir_config, tesseract_cmd, chec
         for step in range(MAX_ROTATION_STEPS):
             adjustments = [SMALL_ROTATION_STEP, -SMALL_ROTATION_STEP]
             for adjustment in adjustments:
+                logging.debug(f"Adjusting angle: {final_angle + adjustment}")
                 adjusted_image = image.rotate(final_angle + adjustment, expand=True)
                 adjusted_text, adjusted_confidence = tesseract_ocr(adjusted_image, language, tessdata_dir_config, tesseract_cmd)
                 if adjusted_confidence > highest_confidence:
@@ -62,7 +63,7 @@ def check_orientations(image, language, tessdata_dir_config, tesseract_cmd, chec
                     best_text = adjusted_text
                     break
 
-    return best_text, final_angle
+    return best_text, final_angle, confidence
 
 def tesseract_ocr(image, language, tessdata_dir_config, tesseract_cmd):
     pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
@@ -81,14 +82,18 @@ def process_images(input_dir, language, save_preprocessed, threshold, tesseract_
         for index, filename in enumerate(sorted([f for f in os.listdir(input_dir) if f.endswith('.jpeg') or f.endswith('.jpg')]), start=1):
             full_path = os.path.join(input_dir, filename)
             img = preprocess_image(full_path, save_preprocessed, input_dir, threshold)
-            text, final_angle = check_orientations(img, language, tessdata_dir_config, tesseract_cmd, check_orientation) if check_orientation else tesseract_ocr(img, language, tessdata_dir_config, tesseract_cmd)
-            json_output = {"new_page": True, "page_number": index, "page_file": filename, "final_angle": final_angle}
+            if check_orientation :
+                text, final_angle, confidence = check_orientations(img, language, tessdata_dir_config, tesseract_cmd, check_orientation)
+            else:
+                text, confidence = tesseract_ocr(img, language, tessdata_dir_config, tesseract_cmd)
+                final_angle, = 0
+            json_output = {"new_page": True, "number": index, "file": filename, "final_angle": final_angle, "confidence": confidence}
             file_out.write(f"'{json.dumps(json_output)}'\n{text}\n")
             logging.info(f"Processed {filename} with final angle: {final_angle}")
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python script.py <input_directory> [--language <lang_code>] [--save-preprocessed] [--threshold <int>] [--tessdata-path <path_to_tessdata>] [--check-orientation  <int>]")
+        print("Usage: python script.py <input_directory> [--language <lang_code>] [--save-preprocessed] [--threshold <int>] [--tessdata-path <path_to_tessdata>] [--check-orientation <int>]")
         sys.exit(1)
 
     input_dir = sys.argv[1]

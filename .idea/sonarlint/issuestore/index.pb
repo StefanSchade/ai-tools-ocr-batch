@@ -34,3 +34,5 @@ T
 $src/old_versions/sciript_outdated.py,b\c\bc326552a29a5b0db47df6d39f421fb85b4b3ebe
 O
 src/old_versions/new_version.py,6\8\683c579c469aa0278a3fb7df20b15962d2fc48c7
+L
+src/transform_to_asciidoc.py,f\3\f3b98f18e6dae107a16a4a91a430ab26583964be

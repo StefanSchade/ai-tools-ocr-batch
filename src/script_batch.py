@@ -106,7 +106,7 @@ def process_images(input_dir, language, save_preprocessed, threshold, tesseract_
                 text, final_angle, confidence = check_orientations(img, language, tessdata_dir_config, tesseract_cmd, check_orientation)
             else:
                 text, confidence = tesseract_ocr(img, language, tessdata_dir_config, tesseract_cmd)
-                final_angle, = 0
+                final_angle = 0
             json_output = {"new_page": True, "number": index, "file": filename, "final_angle": final_angle, "confidence": confidence}
             file_out.write(f"'{json.dumps(json_output)}'\n{text}\n")
             logging.info(f"Processed {filename} with final angle: {final_angle}")

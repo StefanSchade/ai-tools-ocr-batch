@@ -37,26 +37,30 @@ def preprocess_image(image_path, save_preprocessed, output_dir, threshold):
 def check_orientations(image, language, tessdata_dir_config, tesseract_cmd, check_orientation):
     orientations = [0, 90, 180, 270]
     best_text = ''
-    highest_confidence = -1
+    highest_confidence_after_basic_optimization = -1
+    best_confidence_found = -1
     final_angle = 0
 
     # Initial broad check at major orientations
     for angle in orientations:
         rotated_image = image.rotate(angle, expand=True)
         text, confidence = tesseract_ocr(rotated_image, language, tessdata_dir_config, tesseract_cmd)
-        if confidence > highest_confidence:
-            highest_confidence = confidence
+        if confidence > highest_confidence_after_basic_optimization:
+            highest_confidence_after_basic_optimization = confidence
             best_text = text
             final_angle = angle
             # Break early if high enough confidence is found
             if confidence > HIGH_CONFIDENCE_THRESHOLD:
                 break
 
+    best_confidence_found = highest_confidence_after_basic_optimization
+    logging.debug(f"Basic orientation correction result: Confidence={highest_confidence_after_basic_optimization}, orientation={final_angle}")
+
     # Detailed orientation check if the confidence threshold is not met
     if check_orientation == 2:
-        best_confidence_found = highest_confidence
         # Check in one direction
         for adjustment in range(1, MAX_ROTATION_STEPS + 1):
+            logging.debug(f"Fine optimization testing orientation {final_angle + adjustment * SMALL_ROTATION_STEP}")
             adjusted_image = image.rotate(final_angle + adjustment * SMALL_ROTATION_STEP, expand=True)
             adjusted_text, adjusted_confidence = tesseract_ocr(adjusted_image, language, tessdata_dir_config, tesseract_cmd)
             if adjusted_confidence > best_confidence_found:
@@ -67,8 +71,9 @@ def check_orientations(image, language, tessdata_dir_config, tesseract_cmd, chec
                 break  # Stop if no improvement
 
         # If no improvement was found in the initial direction, check the opposite direction
-        if best_confidence_found == highest_confidence:
+        if best_confidence_found == highest_confidence_after_basic_optimization:
             for adjustment in range(1, MAX_ROTATION_STEPS + 1):
+                logging.debug(f"Fine optimization testing orientation {final_angle + adjustment * SMALL_ROTATION_STEP}")
                 adjusted_image = image.rotate(final_angle - adjustment * SMALL_ROTATION_STEP, expand=True)
                 adjusted_text, adjusted_confidence = tesseract_ocr(adjusted_image, language, tessdata_dir_config, tesseract_cmd)
                 if adjusted_confidence > best_confidence_found:

@@ -91,16 +91,18 @@ def tesseract_ocr(image, language, tessdata_dir_config, tesseract_cmd):
     config = f'--oem 3 --psm 3 -l {language} {tessdata_dir_config}'
     data = pytesseract.image_to_data(image, config=config, output_type=pytesseract.Output.DICT)
 
+    # Initialize a dictionary to hold text by lines
     lines = {}
-    for i, (text, conf, line) in enumerate(zip(data['text'], data['conf'], data['line_num'])):
-        if int(conf) > 60:  # Only consider confident recognitions
-            if line in lines:
-                lines[line].append(text)
+    for i, word in enumerate(data['text']):
+        if int(data['conf'][i]) > 60:  # Only consider confident recognitions
+            line_num = data['line_num'][i]
+            if line_num in lines:
+                lines[line_num].append(word)
             else:
-                lines[line] = [text]
+                lines[line_num] = [word]
 
-    # Join lines and separate them with newline characters
-    text = '\n'.join([' '.join(lines[line]) for line in sorted(lines)])
+    # Join lines preserving the text structure
+    text = '\n'.join([' '.join(lines[line]) for line in sorted(lines.keys())])
     average_confidence = sum(data['conf']) / len(data['conf']) if len(data['conf']) > 0 else 0
     logging.debug(f"Processed text with average confidence: {average_confidence}")
     return text, average_confidence

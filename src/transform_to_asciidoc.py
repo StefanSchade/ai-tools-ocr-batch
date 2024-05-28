@@ -1,40 +1,79 @@
-import json
-import re
-import sys
+import argparse
+from prompt_toolkit import prompt
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.application import Application
+from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
+from prompt_toolkit.layout.layout import Layout
+from prompt_toolkit.layout.controls import FormattedTextControl
+from prompt_toolkit.layout.containers import HSplit, VSplit, Window
+from prompt_toolkit.widgets import Button, TextArea
 
-# Constants for header detection
-HEADER_KEY_WORDS = ["KAPITEL", "VORWORT", "EINLEITUNG", "INHALTSVERZEICHNIS"]
-HEADER_CHARS = set('ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ')
+class InteractiveHeadingsEditor:
+    def __init__(self, headings):
+        self.headings = headings
+        self.current_index = 0
+        self.status = TextArea(focusable=False, text="Use Arrow keys to navigate. Tab/Shift-Tab to change level. 'x' to toggle delete.")
 
-def is_header(line):
-    words = line.split()
-    # Check if the majority of the words in the line are uppercase and if it contains typical header keywords
-    if all(word.isupper() for word in words if len(word) > 1):
-        return any(keyword in line for keyword in HEADER_KEY_WORDS) or all(char in HEADER_CHARS for char in line.replace(" ", ""))
-    return False
+    def display_headings(self):
+        items = []
+        for index, heading in enumerate(self.headings):
+            selected = "->" if index == self.current_index else "  "
+            deletion_status = "[DELETED]" if heading.get("deleted", False) else ""
+            items.append(f"{selected} Level {heading['level']}: {heading['text']} {deletion_status}")
+        return '\n'.join(items)
 
-def parse_json_line(line):
-    try:
-        return json.loads(line.strip("'"))
-    except json.JSONDecodeError:
-        return None
+    def run(self):
+        bindings = KeyBindings()
 
-def convert_to_asciidoc(input_file, output_file):
-    with open(input_file, 'r', encoding='utf-8') as infile, open(output_file, 'w', encoding='utf-8') as outfile:
-        for line in infile:
-            if line.startswith("'"):  # Metadata line
-                metadata = parse_json_line(line)
-                if metadata:
-                    outfile.write(f"// meta: {json.dumps(metadata)}\n")
-                continue
-            if is_header(line.strip()):
-                outfile.write(f"== {line.strip()}\n")
-            else:
-                outfile.write(line)
+        @bindings.add('up')
+        def _(event):
+            self.current_index = max(0, self.current_index - 1)
+
+        @bindings.add('down')
+        def _(event):
+            self.current_index = min(len(self.headings) - 1, self.current_index + 1)
+
+        @bindings.add('tab')
+        def _(event):
+            self.headings[self.current_index]['level'] += 1
+
+        @bindings.add('s-tab')
+        def _(event):
+            self.headings[self.current_index]['level'] = max(1, self.headings[self.current_index]['level'] - 1)
+
+        @bindings.add('x')
+        def _(event):
+            self.headings[self.current_index]['deleted'] = not self.headings[self.current_index].get('deleted', False)
+
+        @bindings.add('enter')
+        def _(event):
+            event.app.exit()
+
+        text_area = TextArea(
+            text=self.display_headings,
+            focusable=False,
+            read_only=True
+        )
+
+        layout = Layout(HSplit([text_area, self.status]))
+
+        app = Application(layout=layout, key_bindings=bindings, full_screen=True)
+        app.run()
+
+def main():
+    parser = argparse.ArgumentParser(description="OCR Output Editor")
+    parser.add_argument("input_dir", help="Directory containing the OCR output files")
+    parser.add_argument("output_dir", help="Directory to save the processed files")
+    args = parser.parse_args()
+
+    # Load or simulate headings data
+    headings = load_headings(args.input_dir)  # This function needs to be defined based on your OCR results
+
+    editor = InteractiveHeadingsEditor(headings)
+    editor.run()
+
+    # Save the edited headings
+    save_headings(headings, args.output_dir)  # This function also needs to be defined
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Usage: python transform_to_asciidoc.py <input_file> <output_file>")
-        sys.exit(1)
-    input_file, output_file = sys.argv[1], sys.argv[2]
-    convert_to_asciidoc(input_file, output_file)
+    main()

@@ -79,3 +79,51 @@ Page segmentation modes:
 13    Raw line. Treat the image as a single text line,
 bypassing hacks that are Tesseract-specific.
 ```
+
+
+
+### 2. Transforming the OCR Output to Asciidoc (`transform_to_asciidoc.py`)
+
+#### Purpose
+The `transform_to_asciidoc.py` script automates the process of converting the output of the previous step to an asciidoc file.
+
+#### General Strategy
+
+* Section headings are identified using 
+
+#### Prerequisites
+- **Python Environment:** The script is written in Python and requires Python 3.x installed on your system.
+- **Python Libraries: `prompt_toolkit` installed via pip.
+
+#### Installation Guide
+1. **Python Installation:**
+    - Ensure Python 3.x is installed on your system. You can download it from [python.org](https://www.python.org/downloads/).
+
+2. **Tesseract OCR Installation:**
+    - Install Tesseract OCR by following the instructions on the [Tesseract GitHub page](https://github.com/tesseract-ocr/tesseract). Make sure to add the Tesseract directory to your system's PATH.
+    - Detailed installation guides for various operating systems can be found on the linked GitHub repository.
+
+3. **Python Libraries Installation:**
+    - Install the required Python libraries using pip:
+      ```
+      pip install prompt_toolkit
+      ```
+
+#### Usage
+To use the `ocr_batch.py` script, navigate to the script's directory in your terminal and execute the following command:
+
+```
+python ocr_batch.py <input_directory> [options]
+```
+
+**Options:**
+- `--language <lang_code>`: Sets the OCR language (default is 'deu' for German).
+- `--save-preprocessed`: Saves preprocessed images for review.
+- `--threshold <int>`: Sets a pixel intensity threshold for image binarization.
+- `--tessdata-path <path_to_tessdata>`: Specifies a custom path to the tessdata directory.
+- `--check-orientation <level>`: Sets the level of orientation checking (0, 1, or 2).
+
+**Example:**
+```
+python ocr_batch.py "./images" --language eng --save-preprocessed --threshold 100 --check-orientation 1
+```

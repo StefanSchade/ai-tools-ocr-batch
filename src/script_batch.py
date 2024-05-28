@@ -5,6 +5,7 @@ import logging
 from PIL import Image, ImageFilter, ImageOps, ImageEnhance
 import pytesseract
 import json
+import argparse
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -111,27 +112,31 @@ def process_images(input_dir, language, save_preprocessed, threshold, tesseract_
             file_out.write(f"'{json.dumps(json_output)}'\n{text}\n")
             logging.info(f"Processed {filename} with final angle: {final_angle}")
 
+
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <input_directory> [--language <lang_code>] [--save-preprocessed] [--threshold <int>] [--tessdata-path <path_to_tessdata>] [--check-orientation <int>]")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Process some images.")
+    parser.add_argument('input_directory', type=str, help='The directory containing images.')
+    parser.add_argument('--language', type=str, default='deu', help='Language code for Tesseract OCR.')
+    parser.add_argument('--save-preprocessed', action='store_true', help='Save preprocessed images.')
+    parser.add_argument('--threshold', type=int, default=0, help='Threshold for image preprocessing.')
+    parser.add_argument('--tessdata-path', type=str, help='Path to the tessdata directory.')
+    parser.add_argument('--check-orientation', type=int, choices=[0, 1, 2], default=0, help='Check orientation with 0, 1, or 2.')
 
-    input_dir = sys.argv[1]
-    language = sys.argv[sys.argv.index('--language') + 1] if '--language' in sys.argv else "deu"
-    save_preprocessed = '--save-preprocessed' in sys.argv
-    threshold = int(sys.argv[sys.argv.index('--threshold') + 1]) if '--threshold' in sys.argv else 0
-    check_orientation = int(sys.argv[sys.argv.index('--check_orientation') + 1]) if '--check_orientation' in sys.argv else 0
-    if check_orientation > 2:
-        print(f"Option `Check Orientation` must be 0 (no check) 1 (simple check) or 2 (thorough check) - supplied value {check_orientation} is not permitted, defaulting to 0!")
-        check_orientation = 0;
-    tesseract_cmd = find_tesseract_path()
-    if '--tessdata-path' in sys.argv:
-        tessdata_dir = sys.argv[sys.argv.index('--tessdata-path') + 1]
-    else:
-        tessdata_dir = os.path.join(os.path.dirname(tesseract_cmd), 'tessdata') if tesseract_cmd else ""
+    args = parser.parse_args()
 
+    # Accessing arguments via args object
+    input_dir = args.input_directory
+    language = args.language
+    save_preprocessed = args.save_preprocessed
+    threshold = args.threshold
+    check_orientation = args.check_orientation
+    tessdata_dir = args.tessdata_path if args.tessdata_path else os.path.join(os.path.dirname(find_tesseract_path()), 'tessdata')
+
+    # Correct logging to use the variables from args
     logging.info(f"Arguments: Language: {language}, Save Preprocessed: {save_preprocessed}, Threshold: {threshold}, Check Orientation: {check_orientation}, Tessdata Path: {tessdata_dir}")
-    process_images(input_dir, language, save_preprocessed, threshold, tesseract_cmd, tessdata_dir, check_orientation)
+
+    # Assuming process_images function exists and is correctly implemented
+    process_images(input_dir, language, save_preprocessed, threshold, find_tesseract_path(), tessdata_dir, check_orientation)
 
 if __name__ == '__main__':
     main()

@@ -38,3 +38,5 @@ L
 src/transform_to_asciidoc.py,f\3\f3b98f18e6dae107a16a4a91a430ab26583964be
 Q
 !src/old_versions/load_headings.py,e\d\ed35b93b401328454a110e104a2bb6a8f02f47d2
+B
+src/editor_test.py,8\1\8173b6eccb8d7633ba4ebe4929fbb142e2b64bc9

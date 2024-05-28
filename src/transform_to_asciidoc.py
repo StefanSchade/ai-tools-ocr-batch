@@ -60,20 +60,27 @@ class InteractiveHeadingsEditor:
         app = Application(layout=layout, key_bindings=bindings, full_screen=True)
         app.run()
 
+
+def load_headings(scan_dir):
+    example_headings = [{'text': 'Chapter 1', 'level': 1}, {'text': 'Section 1.1', 'level': 2}]
+    return example_headings
+
+def save_headings(headings, scan_dir):
+    print(headings)
+
 def main():
     parser = argparse.ArgumentParser(description="OCR Output Editor")
-    parser.add_argument("input_dir", help="Directory containing the OCR output files")
-    parser.add_argument("output_dir", help="Directory to save the processed files")
+    parser.add_argument("scan_dir", help="Directory containing the OCR output files and target directory for the output")
     args = parser.parse_args()
 
     # Load or simulate headings data
-    headings = load_headings(args.input_dir)  # This function needs to be defined based on your OCR results
+    headings = load_headings(args.scan_dir)  # This function needs to be defined based on your OCR results
 
     editor = InteractiveHeadingsEditor(headings)
     editor.run()
 
     # Save the edited headings
-    save_headings(headings, args.output_dir)  # This function also needs to be defined
+    save_headings(headings, args.scan_dir)  # This function also needs to be defined
 
 if __name__ == '__main__':
     main()

@@ -50,3 +50,32 @@ python ocr_batch.py <input_directory> [options]
 ```
 python ocr_batch.py "./images" --language eng --save-preprocessed --threshold 100 --check-orientation 1
 ```
+
+#### Fine tuning the scan result
+
+In the script, the statement `config = f'--oem 3 --psm 6 -l {language} {tessdata_dir_config}'` configures tesseract. Here you can influence the scan parameters. As they do not change from scan to scan, I decided against externalizing them as a command line parameter. However if you are unhappy with the scan result it is worth playing with this configuration. 
+
+for instance a parameter of `--psm 3` for me resulted in an output as one block of text without the line breaks of the original. If this is what you want it might be worth adjusting this in the script.
+
+```
+To list out the 14 PSMs in Tesseract, just supply the --help-psm argument to the tesseract binary:
+
+Tesseract Page Segmentation Modes (PSMs) Explained: How to Improve Your OCR Accuracy
+$ tesseract --help-psm
+Page segmentation modes:
+0    Orientation and script detection (OSD) only.
+1    Automatic page segmentation with OSD.
+2    Automatic page segmentation, but no OSD, or OCR. (not implemented)
+3    Fully automatic page segmentation, but no OSD. (Default)
+4    Assume a single column of text of variable sizes.
+5    Assume a single uniform block of vertically aligned text.
+6    Assume a single uniform block of text.
+7    Treat the image as a single text line.
+8    Treat the image as a single word.
+9    Treat the image as a single word in a circle.
+10    Treat the image as a single character.
+11    Sparse text. Find as much text as possible in no particular order.
+12    Sparse text with OSD.
+13    Raw line. Treat the image as a single text line,
+bypassing hacks that are Tesseract-specific.
+```

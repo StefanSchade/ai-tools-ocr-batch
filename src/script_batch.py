@@ -88,12 +88,13 @@ def check_orientations(image, language, tessdata_dir_config, tesseract_cmd, chec
 
 def tesseract_ocr(image, language, tessdata_dir_config, tesseract_cmd):
     pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
-    config = f'--oem 3 --psm 3 -l {language} {tessdata_dir_config}'
+    config = f'--oem 3 --psm 6 -l {language} {tessdata_dir_config}'
     data = pytesseract.image_to_data(image, config=config, output_type=pytesseract.Output.DICT)
 
     # Initialize a dictionary to hold text by lines
     lines = {}
     for i, word in enumerate(data['text']):
+        #logging.debug(f"--------------- processing: word = {word} conf = {data['conf'][i]} line_num = {data['line_num'][i]}")
         if int(data['conf'][i]) > 60:  # Only consider confident recognitions
             line_num = data['line_num'][i]
             if line_num in lines:

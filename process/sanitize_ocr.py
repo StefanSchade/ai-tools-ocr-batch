@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import re
 from tqdm import tqdm
 import difflib
 import enchant
@@ -27,7 +28,7 @@ class CustomDictionary:
 
 def load_dict(language):
     if language == 'deu':
-        return CustomDictionary('path/to/de/index.dic')
+        return CustomDictionary('C:/Users/schades/.dictionaries/german.dic')
     elif language == 'eng':
         return enchant.Dict("en_US")
     else:
@@ -65,6 +66,12 @@ def handle_hyphens(lines, dictionary):
     return new_lines
 
 def sanitize_text(input_file, output_file, dictionary):
+    def split_tokens(text):
+        return re.findall(r'\w+|[^\w\s]', text, re.UNICODE)
+
+    def join_tokens(tokens):
+        return ''.join(tokens)
+
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
 
@@ -73,9 +80,14 @@ def sanitize_text(input_file, output_file, dictionary):
 
     sanitized_lines = []
     for line in tqdm(lines, desc='Sanitizing Text'):
-        words = line.split()
-        sanitized_words = [fuzzy_compare(word, dictionary) for word in words]
-        sanitized_lines.append(' '.join(sanitized_words))
+        tokens = split_tokens(line)
+        sanitized_tokens = []
+        for token in tokens:
+            if re.match(r'\w+', token):  # If the token is a word
+                sanitized_tokens.append(fuzzy_compare(token, dictionary))
+            else:
+                sanitized_tokens.append(token)  # Preserve punctuation and other tokens
+        sanitized_lines.append(join_tokens(sanitized_tokens))
 
     with open(output_file, 'w', encoding='utf-8') as outfile:
         outfile.write('\n'.join(sanitized_lines))

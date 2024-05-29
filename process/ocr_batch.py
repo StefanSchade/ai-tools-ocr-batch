@@ -2,10 +2,11 @@ import sys
 import os
 import re
 import logging
-from PIL import Image, ImageFilter, ImageOps, ImageEnhance
+from PIL import Image, ImageFilter
 import pytesseract
 import json
 import argparse
+from tqdm import tqdm
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -94,7 +95,6 @@ def tesseract_ocr(image, language, tessdata_dir_config, tesseract_cmd):
     # Initialize a dictionary to hold text by lines
     lines = {}
     for i, word in enumerate(data['text']):
-        #logging.debug(f"--------------- processing: word = {word} conf = {data['conf'][i]} line_num = {data['line_num'][i]}")
         if int(data['conf'][i]) > 60:  # Only consider confident recognitions
             line_num = data['line_num'][i]
             if line_num in lines:
@@ -108,24 +108,24 @@ def tesseract_ocr(image, language, tessdata_dir_config, tesseract_cmd):
     logging.debug(f"Processed text with average confidence: {average_confidence}")
     return text, average_confidence
 
-
 def process_images(input_dir, language, save_preprocessed, threshold, tesseract_cmd, tessdata_dir, check_orientation):
     tessdata_dir_config = r'--tessdata-dir "' + tessdata_dir + '"'
     output_file = os.path.join(input_dir, 'ocr_result.txt')
 
+    image_files = sorted([f for f in os.listdir(input_dir) if f.endswith('.jpeg') or f.endswith('.jpg')])
+
     with open(output_file, 'w', encoding='utf-8') as file_out:
-        for index, filename in enumerate(sorted([f for f in os.listdir(input_dir) if f.endswith('.jpeg') or f.endswith('.jpg')]), start=1):
+        for index, filename in enumerate(tqdm(image_files, desc='Processing Images'), start=1):
             full_path = os.path.join(input_dir, filename)
             img = preprocess_image(full_path, save_preprocessed, input_dir, threshold)
-            if check_orientation :
+            if check_orientation:
                 text, final_angle, confidence = check_orientations(img, language, tessdata_dir_config, tesseract_cmd, check_orientation)
             else:
                 text, confidence = tesseract_ocr(img, language, tessdata_dir_config, tesseract_cmd)
                 final_angle = 0
             json_output = {"new_page": True, "number": index, "file": filename, "final_angle": final_angle, "confidence": confidence}
             file_out.write(f"'{json.dumps(json_output)}'\n{text}\n")
-            logging.info(f"Processed {filename} with final angle: {final_angle}")
-
+            logging.debug(f"Processed {filename} with final angle: {final_angle}")
 
 def main():
     parser = argparse.ArgumentParser(description="Process some images.")
@@ -146,10 +146,9 @@ def main():
     check_orientation = args.check_orientation
     tessdata_dir = args.tessdata_path if args.tessdata_path else os.path.join(os.path.dirname(find_tesseract_path()), 'tessdata')
 
-    # Correct logging to use the variables from args
     logging.info(f"Arguments: Language: {language}, Save Preprocessed: {save_preprocessed}, Threshold: {threshold}, Check Orientation: {check_orientation}, Tessdata Path: {tessdata_dir}")
 
-    # Assuming process_images function exists and is correctly implemented
+    # Run the image processing function
     process_images(input_dir, language, save_preprocessed, threshold, find_tesseract_path(), tessdata_dir, check_orientation)
 
 if __name__ == '__main__':

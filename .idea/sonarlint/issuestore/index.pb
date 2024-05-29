@@ -40,3 +40,15 @@ Q
 !src/old_versions/load_headings.py,e\d\ed35b93b401328454a110e104a2bb6a8f02f47d2
 B
 src/editor_test.py,8\1\8173b6eccb8d7633ba4ebe4929fbb142e2b64bc9
+A
+src/headings.json,6\e\6ef0e6e27bfd91237ba2feb995776198efc9b681
+G
+src/extract_headings.py,b\5\b588de7a78c990f9e7d9284aff476fdf5120b682
+L
+src/match_against_dictionary,1\a\1afb964806445e83b8453da0e3ac1bdc19e3aa4b
+O
+src/match_against_dictionary.py,3\2\327820c95af5a67a5a51708f9560794305f1dcd5
+D
+process/ocr_batch.py,a\c\ac23159a63472cad27b1f90503762e4044f8235b
+P
+ src/InteractiveHeadingsEditor.py,b\1\b142fa5aa25746b7f0b3235cb36148cd633f3044

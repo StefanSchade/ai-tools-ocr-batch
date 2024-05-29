@@ -1,9 +1,17 @@
 
 # OCR Batch Processing Tools
 
-This repository contains a collection of scripts designed to automate the Optical Character Recognition (OCR) of images and perform various post-processing tasks on the recognized text. These tools are intended to streamline the processing of large batches of images into editable and analyzable text formats.
+This repository contains a collection of scripts designed to automate the Optical Character Recognition (OCR) of images and various post-processing tasks. These tools are intended to streamline the processing of large batches of images into editable and analyzable text formats.
 
 ## Scripts Included
+
+* Script `ocr_batch.py`
+* Script `match_against_dictionary`
+  * Correct OCR imperfections 
+  * Remove line-end hyphens while retaining   
+* d
+* d
+
 
 ### 1. OCR Image Processing (`ocr_batch.py`)
 
@@ -93,7 +101,9 @@ The `transform_to_asciidoc.py` script automates the process of converting the ou
 
 #### Prerequisites
 - **Python Environment:** The script is written in Python and requires Python 3.x installed on your system.
-- **Python Libraries: `prompt_toolkit` installed via pip.
+- **Python Libraries: `prompt_toolkit` `fuzzywuzzy`installed via pip.
+  python-Levenshtei
+  pip install python-Levenshtein
 
 #### Installation Guide
 1. **Python Installation:**
@@ -127,3 +137,22 @@ python ocr_batch.py <input_directory> [options]
 ```
 python ocr_batch.py "./images" --language eng --save-preprocessed --threshold 100 --check-orientation 1
 ```
+
+
+pip install spacy
+pip install nltk
+pip install pyenchant
+tqdm
+
+
+
+
+Install Missing Dictionaries: Depending on your system, installing the German dictionary for PyEnchant can vary:
+
+Windows: Dictionaries might need to be manually downloaded or installed via an installer.
+Linux: You can typically install dictionaries using the package manager, e.g., sudo apt-get install aspell-de for Debian-based systems.
+
+
+https://pyenchant.github.io/pyenchant/api/enchant.html
+
+

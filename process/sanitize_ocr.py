@@ -5,7 +5,7 @@ import re
 from tqdm import tqdm
 
 # Setup logging
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class CustomDictionary:
     def __init__(self, file_path):
@@ -34,11 +34,17 @@ def handle_hyphens(lines, dictionary):
         current_line = lines[i].rstrip()
         next_line = lines[i + 1].lstrip()
         if current_line.endswith('-'):
-            combined_word = current_line[:-1] + next_line.split()[0]
+            logging.debug(f"Found hyphen at end of line {i}: {current_line}")
+            first_word_next_line = next_line.split()[0] if next_line.split() else ''
+            combined_word = current_line[:-1] + first_word_next_line
+            logging.debug(f"Trying to combine '{current_line[:-1]}' with '{first_word_next_line}' to form '{combined_word}'")
             if dictionary.check(combined_word):
-                new_lines.append(current_line[:-1] + next_line)
+                logging.debug(f"Combined word '{combined_word}' is valid.")
+                new_lines.append(current_line[:-1] + first_word_next_line + next_line[len(first_word_next_line):])
+                logging.debug(f"New combined line: {current_line[:-1] + first_word_next_line + next_line[len(first_word_next_line):]}")
                 skip_next = True
             else:
+                logging.debug(f"Combined word '{combined_word}' is not valid. Keeping lines separate.")
                 new_lines.append(current_line)
         else:
             new_lines.append(current_line)
@@ -47,30 +53,14 @@ def handle_hyphens(lines, dictionary):
     return new_lines
 
 def sanitize_text(input_file, output_file, dictionary):
-    def split_tokens(text):
-        return re.findall(r'\w+|[^\w\s]', text, re.UNICODE)
-
-    def join_tokens(tokens):
-        result = []
-        for i in range(len(tokens)):
-            if i > 0 and re.match(r'\w', tokens[i]) and re.match(r'\w', tokens[i - 1]):
-                result.append(' ')
-            result.append(tokens[i])
-        return ''.join(result)
-
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
 
     # Handle hyphens first before any other processing
-    lines = handle_hyphens(lines, dictionary)
-
-    sanitized_lines = []
-    for line in tqdm(lines, desc='Sanitizing Text'):
-        tokens = split_tokens(line)
-        sanitized_lines.append(join_tokens(tokens))
+    sanitized_lines = handle_hyphens(lines, dictionary)
 
     with open(output_file, 'w', encoding='utf-8') as outfile:
-        outfile.write('\n'.join(sanitized_lines))
+        outfile.write(''.join(sanitized_lines))
 
 def main():
     parser = argparse.ArgumentParser(description='Sanitize OCR results')

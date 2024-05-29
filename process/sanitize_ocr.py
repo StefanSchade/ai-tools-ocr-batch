@@ -11,29 +11,29 @@ logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -
 class CustomDictionary:
     def __init__(self, file_path):
         self.words = set()
-        self.word_map = {}
+        self.base_words = set()
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
-                base_word = line.split('/')[0].strip()  # Extract the word before the '/'
-                self.words.add(base_word)
-                self.word_map[base_word.lower()] = base_word
+                word = line.split('/')[0].strip()  # Extract the word before the '/'
+                self.words.add(line.strip())
+                self.base_words.add(word)
 
     def suggest(self, word):
-        # Use difflib.get_close_matches for suggestions
-        return difflib.get_close_matches(word, self.words)
+        # Use difflib.get_close_matches for suggestions based on base words
+        return difflib.get_close_matches(word, self.base_words)
 
     def check(self, word):
-        return word in self.words
+        return word in self.base_words
 
 def load_dict(language):
     if language == 'deu':
-        return CustomDictionary('C:/Users/schades/.dictionaries/german.dic')
+        return CustomDictionary('path/to/de/index.dic')
     elif language == 'eng':
         return enchant.Dict("en_US")
     else:
         raise ValueError(f"Unsupported language: {language}")
 
-def fuzzy_compare(word, dictionary, threshold=0.9):
+def fuzzy_compare(word, dictionary, threshold=0.95):
     suggestions = dictionary.suggest(word)
     if not suggestions:
         return word
@@ -68,13 +68,14 @@ def sanitize_text(input_file, output_file, dictionary):
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()
 
+    # Handle hyphens first before any other processing
+    lines = handle_hyphens(lines, dictionary)
+
     sanitized_lines = []
     for line in tqdm(lines, desc='Sanitizing Text'):
         words = line.split()
         sanitized_words = [fuzzy_compare(word, dictionary) for word in words]
         sanitized_lines.append(' '.join(sanitized_words))
-
-    sanitized_lines = handle_hyphens(sanitized_lines, dictionary)
 
     with open(output_file, 'w', encoding='utf-8') as outfile:
         outfile.write('\n'.join(sanitized_lines))

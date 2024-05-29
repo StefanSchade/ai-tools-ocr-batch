@@ -34,14 +34,21 @@ def handle_hyphens(lines, dictionary):
         current_line = lines[i].rstrip()
         next_line = lines[i + 1].lstrip()
         if current_line.endswith('-'):
-            logging.debug(f"Found hyphen at end of line {i}: {current_line}")
+            # Extract the last word before the hyphen
+            prev_word = re.findall(r'\b\w+\b(?=-$)', current_line)
+            prev_word = prev_word[-1] if prev_word else ''
+
+            # Extract the first word in the next line
             first_word_next_line = next_line.split()[0] if next_line.split() else ''
-            combined_word = current_line[:-1] + first_word_next_line
-            logging.debug(f"Trying to combine '{current_line[:-1]}' with '{first_word_next_line}' to form '{combined_word}'")
+
+            combined_word = prev_word + first_word_next_line
+            logging.debug(f"Trying to combine '{prev_word}' with '{first_word_next_line}' to form '{combined_word}'")
+
             if dictionary.check(combined_word):
                 logging.debug(f"Combined word '{combined_word}' is valid.")
-                new_lines.append(current_line[:-1] + first_word_next_line + next_line[len(first_word_next_line):])
-                logging.debug(f"New combined line: {current_line[:-1] + first_word_next_line + next_line[len(first_word_next_line):]}")
+                new_line = current_line[:-len(prev_word)-1] + combined_word + next_line[len(first_word_next_line):]
+                new_lines.append(new_line)
+                logging.debug(f"New combined line: {new_line}")
                 skip_next = True
             else:
                 logging.debug(f"Combined word '{combined_word}' is not valid. Keeping lines separate.")
@@ -60,7 +67,7 @@ def sanitize_text(input_file, output_file, dictionary):
     sanitized_lines = handle_hyphens(lines, dictionary)
 
     with open(output_file, 'w', encoding='utf-8') as outfile:
-        outfile.write(''.join(sanitized_lines))
+        outfile.write('\n'.join(sanitized_lines))
 
 def main():
     parser = argparse.ArgumentParser(description='Sanitize OCR results')

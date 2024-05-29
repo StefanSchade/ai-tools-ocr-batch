@@ -84,7 +84,7 @@ def check_orientations(image, language, tessdata_dir_config, tesseract_cmd, chec
                     best_text = adjusted_text
                 else:
                     break  # Stop if no improvement
-
+    logging.info(f"Orientation correction result: Confidence={best_confidence_found}, orientation={final_angle}")
     return best_text, final_angle, best_confidence_found
 
 def tesseract_ocr(image, language, tessdata_dir_config, tesseract_cmd):

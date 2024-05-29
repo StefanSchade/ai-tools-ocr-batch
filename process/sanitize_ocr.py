@@ -11,9 +11,12 @@ logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -
 class CustomDictionary:
     def __init__(self, file_path):
         self.words = set()
+        self.word_map = {}
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
-                self.words.add(line.strip())
+                base_word = line.split('/')[0].strip()  # Extract the word before the '/'
+                self.words.add(base_word)
+                self.word_map[base_word.lower()] = base_word
 
     def suggest(self, word):
         # Use difflib.get_close_matches for suggestions
@@ -24,7 +27,7 @@ class CustomDictionary:
 
 def load_dict(language):
     if language == 'deu':
-        return CustomDictionary('C:/Users/schades/.dictionaries/german.dic')
+        return CustomDictionary('path/to/de/index.dic')
     elif language == 'eng':
         return enchant.Dict("en_US")
     else:

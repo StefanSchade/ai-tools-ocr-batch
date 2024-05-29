@@ -52,3 +52,7 @@ D
 process/ocr_batch.py,a\c\ac23159a63472cad27b1f90503762e4044f8235b
 P
  src/InteractiveHeadingsEditor.py,b\1\b142fa5aa25746b7f0b3235cb36148cd633f3044
+G
+process/sanitize_ocr.py,8\5\8531f44228965004dba7be9dd8f8577aad6e98b6
+K
+process/run_ocr_pipeline.py,9\c\9c60bc55c1f80c594bc54b4f576afca8cf24b9f5

@@ -143,7 +143,7 @@ pip install spacy
 pip install nltk
 pip install pyenchant
 tqdm
-
+hunspell
 
 
 
@@ -154,5 +154,15 @@ Linux: You can typically install dictionaries using the package manager, e.g., s
 
 
 https://pyenchant.github.io/pyenchant/api/enchant.html
+
+
+https://github.com/wooorm/dictionaries/tree/main/dictionaries/la
+
+both hunspell and enchant have a problem on windows
+
+https://pyenchant.github.io/pyenchant/api/enchant.pypwl.html
+
+
+
 
 

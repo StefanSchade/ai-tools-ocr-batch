@@ -70,7 +70,12 @@ def sanitize_text(input_file, output_file, dictionary):
         return re.findall(r'\w+|[^\w\s]', text, re.UNICODE)
 
     def join_tokens(tokens):
-        return ''.join(tokens)
+        result = []
+        for i in range(len(tokens)):
+            if i > 0 and re.match(r'\w', tokens[i]) and re.match(r'\w', tokens[i - 1]):
+                result.append(' ')
+            result.append(tokens[i])
+        return ''.join(result)
 
     with open(input_file, 'r', encoding='utf-8') as infile:
         lines = infile.readlines()

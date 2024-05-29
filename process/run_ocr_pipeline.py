@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 def run_script(script_name, args):
     command = ['python', script_name] + args
-    result = subprocess.run(command, capture_output=True, text=True)
+    result = subprocess.run(command)
     if result.returncode != 0:
         logging.error(f"Error running {script_name}: {result.stderr}")
         raise Exception(f"Error running {script_name}")

@@ -9,7 +9,7 @@ import argparse
 from tqdm import tqdm
 
 # Setup logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Constants for the rotation check algorithm
 HIGH_CONFIDENCE_THRESHOLD = 40
@@ -125,7 +125,7 @@ def process_images(input_dir, language, save_preprocessed, threshold, tesseract_
                 final_angle = 0
             json_output = {"new_page": True, "number": index, "file": filename, "final_angle": final_angle, "confidence": confidence}
             file_out.write(f"'{json.dumps(json_output)}'\n{text}\n")
-            logging.debug(f"Processed {filename} with final angle: {final_angle}")
+            logging.info(f"Processed {filename} with final angle: {final_angle}")
 
 def main():
     parser = argparse.ArgumentParser(description="Process some images.")
@@ -135,8 +135,12 @@ def main():
     parser.add_argument('--threshold', type=int, default=0, help='Threshold for image preprocessing.')
     parser.add_argument('--tessdata-path', type=str, help='Path to the tessdata directory.')
     parser.add_argument('--check-orientation', type=int, choices=[0, 1, 2], default=0, help='Check orientation with 0, 1, or 2.')
+    parser.add_argument('--log-level', type=str, choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='WARNING', help='Set the logging level')
 
     args = parser.parse_args()
+
+    # Set the logging level based on the command-line argument
+    logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
 
     # Accessing arguments via args object
     input_dir = args.input_directory

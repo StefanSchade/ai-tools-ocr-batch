@@ -125,7 +125,7 @@ def process_images(input_dir, language, save_preprocessed, threshold, tesseract_
                 final_angle = 0
             json_output = {"new_page": True, "number": index, "file": filename, "final_angle": final_angle, "confidence": confidence}
             file_out.write(f"'{json.dumps(json_output)}'\n{text}\n")
-            logging.info(f"Processed {filename} with final angle: {final_angle}")
+            logging.debug(f"Processed {filename} with final angle: {final_angle}")
 
 def main():
     parser = argparse.ArgumentParser(description="Process some images.")

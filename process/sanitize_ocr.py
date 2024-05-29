@@ -27,7 +27,7 @@ class CustomDictionary:
 
 def load_dict(language):
     if language == 'deu':
-        return CustomDictionary('path/to/de/index.dic')
+        return CustomDictionary('C:/Users/schades/.dictionaries/german.dic')
     elif language == 'eng':
         return enchant.Dict("en_US")
     else:

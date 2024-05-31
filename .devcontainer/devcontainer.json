@@ -1,0 +1,26 @@
+{
+  "name": "Dev Container",
+  "dockerFile": "../docker/Dockerfile",
+  "workspaceFolder": "/workspace",
+  "context": "..",
+  "mounts": [
+    "source=${localWorkspaceFolder}/src,target=/workspace/src,type=bind",
+    "source=${localWorkspaceFolder}/data,target=/workspace/data,type=bind",
+    "source=${localWorkspaceFolder}/docs,target=/workspace/docs,type=bind",
+    "source=${localWorkspaceFolder}/scripts,target=/workspace/scripts,type=bind",
+    "source=${localWorkspaceFolder}/docker,target=/workspace/docker,type=bind",
+    "source=${localWorkspaceFolder}/target,target=/workspace/target,type=bind",
+    "source=${localWorkspaceFolder}/requirements.txt,target=/workspace/requirements.txt,type=bind",
+    "source=${localWorkspaceFolder}/.github,target=/workspace/.github,type=bind",
+    "source=${localWorkspaceFolder}/.devcontainer,target=/workspace/.devcontainer,type=bind"
+  ],
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  },
+  "extensions": [
+    "ms-python.python",
+    "ms-azuretools.vscode-docker"
+  ],
+  "postCreateCommand": "/workspace/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt",
+  "remoteUser": "root"
+}

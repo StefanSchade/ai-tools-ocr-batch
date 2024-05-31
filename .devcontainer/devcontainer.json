@@ -12,6 +12,7 @@
     "source=${localWorkspaceFolder}/target,target=/workspace/target,type=bind",
     "source=${localWorkspaceFolder}/requirements.txt,target=/workspace/requirements.txt,type=bind",
     "source=${localWorkspaceFolder}/.github,target=/workspace/.github,type=bind",
+    "source=${localWorkspaceFolder}/.github,target=/workspace/.git,type=bind",
     "source=${localWorkspaceFolder}/.devcontainer,target=/workspace/.devcontainer,type=bind"
   ],
   "settings": {
@@ -19,7 +20,9 @@
   },
   "extensions": [
     "ms-python.python",
-    "ms-azuretools.vscode-docker"
+    "ms-azuretools.vscode-docker",
+    "asciidoctor.asciidoctor-vscode",
+    "mhutchie.git-graph"
   ],
   "postCreateCommand": "/workspace/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt",
   "remoteUser": "root"

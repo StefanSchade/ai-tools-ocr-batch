@@ -107,7 +107,7 @@ Building and starting the development container is normally done by the IDE - yo
 
 you will need the bash (*.sh) or the windows shell (*.cmd) version of the script, depending on wether you are within the container or outside when you perform the action. Take care not to use windows powershell, since the scripts are optimised for the normal comand shell.
 
-====  Managing the connection between the IDE and the development container 
+==== Managing the connection between the IDE and the development container 
 
 The connection between the  IDE and the development container is managed by an https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers[extention]
 
@@ -120,4 +120,27 @@ The connection between the  IDE and the development container is managed by an h
 * Switch back to Local mode `Str + Shift + P` and type "Dev Containers: Open Folder Locally"
 * Perform a container restart, e.g. after a config change `Str + Shift + P` and type "Dev Containers: Reopen Folder Locally"
 * Trouble-Shooting: If you get tangled. Stop VS Code and make sure there is no process running (Code), stop all containers and start afresh.
+
+==== Adding Extentions to VSCode
+
+If you install a new extension in VS Code while using a Dev Container, it will not automatically persist across container restarts or rebuilds unless specified in the devcontainer.json configuration. To ensure that the extension is always available in your Dev Container, you need to add it to the extensions list in your devcontainer.json. This can be done directly from the Marketplace view via the context menu.
+
+You might also have to restart VS Code to complete the process.
+
+==== Using Git and Dev Containers
+
+Options with advantages and dissadvantages:
+
+. Manage Git from Local Machine
+
+  ** easier setup
+
+. Manage Git from Within the Container
+
+
+
+
+
+
+
 

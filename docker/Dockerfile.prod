@@ -1,6 +1,13 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
+# Install required tools
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory
 WORKDIR /app
 
@@ -10,11 +17,20 @@ COPY ./src /app/src
 # Copy the requirements file
 COPY requirements.txt /app
 
+# Copy the tessdata list
+COPY tessdata.txt /app
+
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Install Tesseract
-RUN apt-get update && apt-get install -y tesseract-ocr
+# Download Tesseract language data, removing any carriage return characters
+RUN cat /app/tessdata.txt | tr -d '\r' | xargs -n 1 wget --no-check-certificate -P /usr/share/tesseract-ocr/4.00/tessdata/
 
-# Set the entrypoint to ensure additional arguments are passed
+# Configure Git to use CA certificates
+RUN git config --global http.sslCAInfo /etc/ssl/certs/ca-certificates.crt
+
+# Set environment variables for the virtual environment
+ENV PATH="/app/venv/bin:$PATH"
+
+# Set the entrypoint to ensure additional arguments are passed to the Python script
 ENTRYPOINT ["python", "/app/src/main_script.py"]

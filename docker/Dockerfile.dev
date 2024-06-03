@@ -26,24 +26,32 @@ COPY ../requirements.txt /workspace
 # Copy the tessdata.txt file
 COPY ../tessdata.txt /workspace
 
+# Copy the source code
+COPY ../src /workspace/src
+
 # Copy the Zscaler certificate if it exists and update CA certificates
 RUN if [ -f ../zscaler.crt ]; then \
     cp ../zscaler.crt /usr/local/share/ca-certificates/zscaler.crt && \
     update-ca-certificates; \
     fi
 
-# Copy the source code
-COPY ../src /workspace/src
-
 # Download Tesseract language data, removing any carriage return characters
 RUN cat /workspace/tessdata.txt | tr -d '\r' | xargs -n 1 wget --no-check-certificate -P /usr/share/tesseract-ocr/4.00/tessdata/
-
 
 # Create and activate a virtual environment
 RUN python3 -m venv /workspace/venv
 
 # Install any Python dependencies in the virtual environment
 RUN /workspace/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt
+
+# Verify CA certificates installation
+RUN ls -l /etc/ssl/certs/ca-certificates.crt
+
+# Configure Git to use CA certificates
+RUN git config --global http.sslCAInfo /etc/ssl/certs/ca-certificates.crt
+
+# Verify Git configuration
+RUN git config --global --get http.sslCAInfo
 
 # Set environment variables for the virtual environment
 ENV PATH="/workspace/venv/bin:$PATH"

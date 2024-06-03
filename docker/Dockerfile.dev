@@ -13,19 +13,40 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     tesseract-ocr \
     asciidoctor \
-    bash
+    bash \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory for the project
 WORKDIR /workspace
 
+# Copy the requirements file
+COPY ../requirements.txt /workspace
+
+# Copy the tessdata.txt file
+COPY ../tessdata.txt /workspace
+
+# Copy the Zscaler certificate if it exists and update CA certificates
+RUN if [ -f ../zscaler.crt ]; then \
+    cp ../zscaler.crt /usr/local/share/ca-certificates/zscaler.crt && \
+    update-ca-certificates; \
+    fi
+
+# Copy the source code
+COPY ../src /workspace/src
+
+# Download Tesseract language data, removing any carriage return characters
+RUN cat /workspace/tessdata.txt | tr -d '\r' | xargs -n 1 wget --no-check-certificate -P /usr/share/tesseract-ocr/4.00/tessdata/
+
+
 # Create and activate a virtual environment
 RUN python3 -m venv /workspace/venv
 
+# Install any Python dependencies in the virtual environment
+RUN /workspace/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt
+
 # Set environment variables for the virtual environment
 ENV PATH="/workspace/venv/bin:$PATH"
-
-# Create a separate directory for SSH keys
-RUN mkdir /root/.ssh
 
 # Run bash by default
 CMD ["bash"]

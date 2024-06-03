@@ -28,3 +28,5 @@ O
 .devcontainer/devcontainer.json,b\3\b34062a34eb177d6796c9ce334de4930d86f38c1
 H
 scripts/setup_ssh_git.sh,1\8\182b227b0ff4503c5dcc49a75beb9257584ff253
+E
+docker/Dockerfile.dev,8\4\84f4361be60e7d273c3582e99cf01239c606dbdb

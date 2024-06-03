@@ -13,7 +13,7 @@
 
 === Use of other IDEs
 
-A similar setup would be possible in IntelliJ. We focus on VSCode for the moment to keep things simple.
+The strategy we are about to follow is based on a standard (Dev Container), so this setup could likely be transfered to other IDEs as for instance IntelliJ. We focus on VSCode for the moment to keep things simple.
 
 For an IDE agnostic setup, we do not check in IDE config directly, however it will be checked in as part of the documentation to be used as a template.
 
@@ -80,9 +80,10 @@ Key settings in `devcontainer.json`:
     "ms-python.python",
     "ms-azuretools.vscode-docker",
     "GitHub.vscode-pull-request-github",
-    "asciidoctor.asciidoctor-vscode"
+    "asciidoctor.asciidoctor-vscode",
+    "mhutchie.git-graph"
   ],
-  "postCreateCommand": "chmod +x /workspace/scripts/setup_ssh_git.sh && /workspace/scripts/setup_ssh_git.sh && git config --global user.name `<YourName>` && git config --global user.email '<your.email@example.com>' && python3 -m venv /workspace/venv && /workspace/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt",
+  "postCreateCommand": "chmod +x /workspace/scripts/setup_ssh_git.sh && /workspace/scripts/setup_ssh_git.sh && git config --global user.name 'Stefan Schade' && git config --global user.email 'dr_stefan_schade@yahoo.com' && python3 -m venv /workspace/venv && /workspace/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt",
   "remoteUser": "root"
 }
 -----
@@ -143,23 +144,31 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     tesseract-ocr \
     asciidoctor \
-    bash
+    bash \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory for the project
 WORKDIR /workspace
 
-# Copy the tessdata list
-COPY ../tessdata.txt /workspace/tessdata.txt
+# Copy the requirements file
+COPY ../requirements.txt /workspace
 
-# Download Tesseract language data files
-RUN xargs -n 1 wget -P /usr/share/tesseract-ocr/4.00/tessdata/ < /workspace/tessdata.txt \
-    && rm -rf /var/lib/apt/lists/*
+# Copy the tessdata.txt file
+COPY ../tessdata.txt /workspace
+
+# Copy the Zscaler certificate if it exists and update CA certificates
+RUN if [ -f ../zscaler.crt ]; then \
+    cp ../zscaler.crt /usr/local/share/ca-certificates/zscaler.crt && \
+    update-ca-certificates; \
+    fi
 
 # Copy the source code
 COPY ../src /workspace/src
 
-# Copy the requirements file
-COPY ../requirements.txt /workspace
+# Download Tesseract language data, removing any carriage return characters
+RUN cat /workspace/tessdata.txt | tr -d '\r' | xargs -n 1 wget --no-check-certificate -P /usr/share/tesseract-ocr/4.00/tessdata/
+
 
 # Create and activate a virtual environment
 RUN python3 -m venv /workspace/venv
@@ -197,9 +206,8 @@ COPY tessdata.txt /app
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Install Tesseract OCR and necessary language data
-RUN apt-get update && apt-get install -y tesseract-ocr \
-    && apt-get install -y wget \
-    && xargs -n 1 wget -P /usr/share/tesseract-ocr/4.00/tessdata/ < /app/tessdata.txt \
+RUN apt-get update && apt-get install -y tesseract-ocr wget \
+    && cat /app/tessdata.txt | tr -d '\r' | xargs -n 1 wget -P /usr/share/tesseract-ocr/4.00/tessdata/ \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables for the virtual environment
@@ -215,6 +223,10 @@ ENTRYPOINT ["python", "/app/src/main_script.py"]
 ----
 FROM python:3.9-slim
 ----
+
+====== Install required tools
+
+`wget` is required to download language data
 
 ====== Installation of the Python dependencies
 
@@ -260,6 +272,14 @@ xargs -n 1 wget -P /usr/share/tesseract-ocr/4.00/tessdata/ < /app/tessdata.txt \
 rm -rf /var/lib/apt/lists/*
 ----
 
+====== Handle Carriage Return Characters when downloading languages
+
+The `cat` command is used to read `tessdata.txt`, and `tr -d '\r'` is used to remove any carriage return characters before passing the URLs to `xargs` and `wget`.
+
+====== Set entrypoint
+
+The `ENTRYPOINT` directive ensures that any additional arguments passed to the Docker container are forwarded to the Python script.
+
 ==== Setup ssh for Github
 
 We assume the following
@@ -277,7 +297,6 @@ Host github.com
   IdentityFile ~/.ssh/<my_key_ending_on_rsa>
 ----
 
-
 ==== Start the Container
 
 Make sure that the Docker Daemon is running (e.g. by starting Docker Desktop)
@@ -291,7 +310,6 @@ If everything is running, you can test the SSH connection to GitHub:
 ----
 ssh -T git@github.com
 ----
-
 
 ==== Managing the connection between the IDE and the development container
 

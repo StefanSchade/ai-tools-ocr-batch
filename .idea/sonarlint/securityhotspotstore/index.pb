@@ -20,9 +20,11 @@ O
 src/match_against_dictionary.py,3\2\327820c95af5a67a5a51708f9560794305f1dcd5
 P
  src/InteractiveHeadingsEditor.py,b\1\b142fa5aa25746b7f0b3235cb36148cd633f3044
+C
+docs/dev_guide.adoc,e\a\ea737655f3d288e8f99f41e914de5b7c43543c2f
+<
+tessdata.txt,2\5\2566e7452c7ee293483fd3f5c3c4756f49470da3
 O
-scripts/dev_start_container.cmd,3\b\3b1803e4d39b206915c6306773f8a9a93c94a9ae
-L
-scripts/build_prod_image.cmd,8\3\833966c47afe0aa39b59d6b9ca36f9b4a541fb3b
-N
-scripts/run_prod_container.cmd,4\7\477ec5e3cd735499e31f93730edded0daa276ce5
+.devcontainer/devcontainer.json,b\3\b34062a34eb177d6796c9ce334de4930d86f38c1
+H
+scripts/setup_ssh_git.sh,1\8\182b227b0ff4503c5dcc49a75beb9257584ff253

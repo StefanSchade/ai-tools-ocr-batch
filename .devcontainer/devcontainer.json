@@ -1,19 +1,11 @@
 {
   "name": "Dev Container",
-  "dockerFile": "../docker/Dockerfile",
+  "dockerFile": "../docker/Dockerfile.dev",
   "workspaceFolder": "/workspace",
   "context": "..",
   "mounts": [
-    "source=${localWorkspaceFolder}/src,target=/workspace/src,type=bind",
-    "source=${localWorkspaceFolder}/data,target=/workspace/data,type=bind",
-    "source=${localWorkspaceFolder}/docs,target=/workspace/docs,type=bind",
-    "source=${localWorkspaceFolder}/scripts,target=/workspace/scripts,type=bind",
-    "source=${localWorkspaceFolder}/docker,target=/workspace/docker,type=bind",
-    "source=${localWorkspaceFolder}/target,target=/workspace/target,type=bind",
-    "source=${localWorkspaceFolder}/requirements.txt,target=/workspace/requirements.txt,type=bind",
-    "source=${localWorkspaceFolder}/.github,target=/workspace/.github,type=bind",
-    "source=${localWorkspaceFolder}/.github,target=/workspace/.git,type=bind",
-    "source=${localWorkspaceFolder}/.devcontainer,target=/workspace/.devcontainer,type=bind"
+    "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    "source=C:/Users/schades/.ssh,target=/root/.ssh,type=bind"
   ],
   "settings": {
     "terminal.integrated.shell.linux": "/bin/bash"
@@ -21,9 +13,13 @@
   "extensions": [
     "ms-python.python",
     "ms-azuretools.vscode-docker",
+    "GitHub.vscode-pull-request-github",
     "asciidoctor.asciidoctor-vscode",
     "mhutchie.git-graph"
   ],
-  "postCreateCommand": "/workspace/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt",
+  "postCreateCommand": "chmod +x /workspace/scripts/setup_ssh_git.sh && /workspace/scripts/setup_ssh_git.sh && git config --global user.name 'Stefan Schade' && git config --global user.email 'dr_stefan_schade@yahoo.com' && python3 -m venv /workspace/venv && /workspace/venv/bin/pip install --no-cache-dir -r /workspace/requirements.txt",
   "remoteUser": "root"
 }
+
+
+

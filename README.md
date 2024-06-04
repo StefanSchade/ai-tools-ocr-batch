@@ -1,4 +1,4 @@
-<img src="README/windows_typewriter.webp" width="200"/>
+<img src="README/windows_typewriter.webp" width="300"/>
 
 # OCR Batch
 
